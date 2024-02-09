@@ -87,6 +87,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:text="Verify otp"
             android:textAllCaps="false" />
@@ -136,7 +137,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="20dp"
             android:background="@color/white"
             android:layout_marginEnd="10dp"
             android:hint="Enter gmail address"
@@ -149,21 +149,12 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginTop="20dp"
-            android:visibility="gone"
             android:layout_marginEnd="10dp"
             android:hint="Enter Password"
             android:background="@color/white"
             android:inputType="textPassword" />
 
-        <Button
-            android:id="@+id/verifyEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginEnd="10dp"
-            android:text="Verify"
-            android:textAllCaps="false" />
+
         <Button
             android:id="@+id/loginEmail"
             android:layout_width="match_parent"
@@ -172,7 +163,6 @@
             android:layout_marginTop="20dp"
             android:layout_marginEnd="10dp"
             android:text="Login"
-            android:visibility="gone"
             android:textAllCaps="false" />
 
 
