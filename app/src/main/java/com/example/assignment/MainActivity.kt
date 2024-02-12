@@ -1,5 +1,6 @@
 package com.example.assignment
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.ContentValues.TAG
 import android.content.Context
@@ -17,6 +18,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.bumptech.glide.Glide
+import com.example.assignment.chatFolder.UsersActivity
 import com.example.assignment.databinding.ActivityMainBinding
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
@@ -33,6 +35,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.auth.api.signin.GoogleSignInResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FacebookAuthProvider
@@ -42,6 +45,10 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.database
+import com.google.firebase.firestore.auth.User
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.storage
@@ -64,14 +71,15 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
     private val PICK_IMAGE_REQUEST = 123
     var imageUrl=""
     private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
-
     private lateinit var imageUri: Uri
     private lateinit var storageRef: StorageReference
+    private lateinit var mDbRef:DatabaseReference
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        FirebaseApp.initializeApp(this);
         auth = Firebase.auth
         auth = FirebaseAuth.getInstance()
         selectedDate = Calendar.getInstance()
@@ -81,8 +89,8 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
         callbackManager = CallbackManager.Factory.create()
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // User is already authenticated, navigate to HomeActivity
-            startActivity(Intent(this, HomeActivity::class.java))
+            // User is already authenticated, navigate to UsersActivity
+            startActivity(Intent(this, UsersActivity::class.java))
             finish() // Finish MainActivity to prevent going back to it when pressing back button
         }
 
@@ -122,7 +130,7 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
                 val credential = PhoneAuthProvider.getCredential(id, code)
                 signInWithPhoneAuthCredential(credential)
                 saveUserToFirestore()
-                val intent = Intent(this@MainActivity, HomeActivity::class.java)
+                val intent = Intent(this@MainActivity, UsersActivity::class.java)
                 intent.putExtra("IMAGE_URL", imageUrl)
                 startActivity(intent)
                 finish()
@@ -294,7 +302,7 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
                     // Sign in success, update UI with the signed-in user's information
                     val user = task.result?.user
                     // Continue with your app logic, such as launching a new activity
-                    val intent = Intent(this@MainActivity, HomeActivity::class.java)
+                    val intent = Intent(this@MainActivity, UsersActivity::class.java)
                     intent.putExtra("IMAGE_URL", imageUrl)
                     startActivity(intent)
                     finish()
@@ -310,7 +318,11 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
     }
     private fun saveUserToFirestore() {
         val db = Firebase.firestore
+        val database = Firebase.database
+
+
         val user = hashMapOf(
+            "uid" to auth.currentUser!!.uid,
             "userImage" to imageUrl,
             "userName" to binding.idEdtUserName.text.toString().trim(),
             "userEmail" to binding.gmail.text.toString().trim(),
@@ -318,7 +330,16 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
             "userDob" to binding.idEdtPassword.text.toString().trim()
             // Add more fields as needed
         )
-
+        val user2 = hashMapOf(
+            "uid" to auth.currentUser!!.uid,
+            "userName" to binding.idEdtUserName.text.toString().trim(),
+            "userEmail" to binding.gmail.text.toString().trim(),
+            // Add more fields as needed
+        )
+        val myRef = database.getReference()
+        myRef.child("Xeeshan").child(auth.currentUser!!.uid).setValue(user2)
+//        mDbRef=FirebaseDatabase.getInstance().getReference()
+//        mDbRef.child("zeeshan").setValue(user)
         db.collection("zeeshan")
             .add(user)
             .addOnSuccessListener { documentReference ->
@@ -328,6 +349,12 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
                 Log.w(TAG, "Error adding document", e)
             }
     }
+
+//    private fun addUsertoDatabase(userName:String, email:String, uid:String){
+//        mDbRef=FirebaseDatabase.getInstance().getReference()
+//        mDbRef.child("zeeshan").child(uid).setValue(User(userName,email,uid))
+//
+//    }
 
 
     //////
@@ -360,7 +387,8 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        val intent = Intent(this@MainActivity, HomeActivity::class.java)
+                        saveUserToFirestore()
+                        val intent = Intent(this@MainActivity, UsersActivity::class.java)
                         intent.putExtra("IMAGE_URL", imageUrl)
                         startActivity(intent)
                         finish() // Finish MainActivity
@@ -399,7 +427,7 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
                 if (task.isSuccess) {
                     val account = task.signInAccount
                     firebaseAuthWithGoogle(account!!)
-                    val intent = Intent(this@MainActivity, HomeActivity::class.java)
+                    val intent = Intent(this@MainActivity, UsersActivity::class.java)
                     intent.putExtra("IMAGE_URL", imageUrl)
                     startActivity(intent)
                     finish()

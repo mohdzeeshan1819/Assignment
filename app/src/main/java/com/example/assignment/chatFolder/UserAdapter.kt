@@ -1,27 +1,44 @@
 package com.example.assignment.chatFolder
 
+import android.content.Context
+import android.content.Intent
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.Recycler
+import com.example.assignment.R
+import com.example.assignment.chatFolder.chatActivityFolder.ChatActivity
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 
-class UserAdapter : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
+class UserAdapter(val context: Context, val userList:ArrayList<Users>) :
+    RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-        TODO("Not yet implemented")
+         val view: View = LayoutInflater.from(context).inflate(R.layout.user_layout,parent,false)
+        return  UserViewHolder(view)
     }
 
     override fun getItemCount(): Int {
-        TODO("Not yet implemented")
+        return userList.size
+
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-        TODO("Not yet implemented")
+        val currentUser=userList[position]
+        holder.textname.text=currentUser.userName.toString()
+        holder.itemView.setOnClickListener(){
+            val intent= Intent(context,ChatActivity::class.java)
+            intent.putExtra("name", currentUser.userName)
+            intent.putExtra("uid",currentUser.uid)
+            context.startActivity(intent)
+        }
+
     }
     class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
-
-
+        val textname=itemView.findViewById<TextView>(R.id.textname)
     }
 
 }

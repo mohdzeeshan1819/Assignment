@@ -2,13 +2,13 @@ package com.example.assignment.chatFolder
 
 class Users {
 
-    var name:String?=null
-    var email:String?=null
+    var userName:String?=null
+    var userEmail:String?=null
     var uid:String?=null
     constructor(){}
-    constructor(name:String?,email:String?,uid:String?){
-        this.name=name
-        this.email=email
+    constructor(userName:String?,userEmail:String?,uid:String?){
+        this.userName=userName
+        this.userEmail=userEmail
         this.uid=uid
     }
 
