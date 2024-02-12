@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.assignment.MainActivity
 import com.example.assignment.R
+import com.example.assignment.chatFolder.chatActivityFolder.Message
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -16,9 +17,12 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
+
 class UsersActivity : AppCompatActivity() {
     private lateinit var userRecyclerView: RecyclerView
     private lateinit var userList:ArrayList<Users>
+    private lateinit var messageList:ArrayList<Message>
+
     private lateinit var adapter:UserAdapter
     private lateinit var mAuth:FirebaseAuth
     private lateinit var mDbRef: DatabaseReference
@@ -28,7 +32,7 @@ class UsersActivity : AppCompatActivity() {
         mAuth = FirebaseAuth.getInstance()
         mDbRef = FirebaseDatabase.getInstance().getReference("Xeeshan")
         userList = ArrayList()
-        adapter = UserAdapter(this, userList)
+        adapter = UserAdapter(this, userList, messageList)
         userRecyclerView = findViewById(R.id.userView)
         userRecyclerView.layoutManager = LinearLayoutManager(this)
         userRecyclerView.adapter = adapter

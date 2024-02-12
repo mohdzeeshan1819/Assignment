@@ -49,20 +49,7 @@ xmlns:app="http://schemas.android.com/apk/res-auto">
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
 
-                android:text="Existing IT-Inside User:"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="This Design  Is Developed By Itinsidenews.com"
-                />
         </LinearLayout>
 
         <TextView
@@ -70,9 +57,10 @@ xmlns:app="http://schemas.android.com/apk/res-auto">
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Phone number"
+            android:text="Enter Gmail"
             android:textColor="@android:color/black"
             android:textStyle="bold"
+            android:inputType="textEmailAddress"
             app:layout_constraintStart_toStartOf="@+id/etEmailLogin"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
 
@@ -81,7 +69,7 @@ xmlns:app="http://schemas.android.com/apk/res-auto">
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/outline_black"
-            android:hint="1234567890"
+            android:hint="emaple@gmail.com"
             android:inputType="textEmailAddress"
             android:maxLength="70"
             android:padding="12dp"
@@ -111,62 +99,38 @@ xmlns:app="http://schemas.android.com/apk/res-auto">
             android:imeOptions="actionDone"
             android:inputType="textPassword"
             android:padding="12dp"
+            android:hint="12345678"
             android:selectAllOnFocus="true"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/etEmailLogin" />
 
         <Button
-            android:id="@+id/tvForgotPassword"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="match_parent"
+            android:id="@+id/login"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Forgot Password?"
+            android:text="Login"
             android:textAllCaps="false"
-
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/etPassword" />
 
-        <Button
-            android:id="@+id/login"
-
+        <TextView
+            android:id="@+id/notAUser"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Login"
+            android:text="Not a user? Please Sign up"
+            android:textColor="#FA0404"
             android:textAllCaps="false"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvForgotPassword" />
-
-
-
-        <Button
-            android:id="@+id/btnSignup"
-
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Signup With Email"
-            android:textAllCaps="false"
+            android:gravity="end"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/login" />
 
-        <Button
-            android:id="@+id/btnSignuphone"
 
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Signup With Phone"
-            android:textAllCaps="false"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnSignup" />
+
 
 
         <ProgressBar

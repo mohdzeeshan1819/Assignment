@@ -72,6 +72,10 @@ dependencies {
     implementation ("com.google.firebase:firebase-firestore-ktx:24.10.1")
     implementation ("com.google.firebase:firebase-database-ktx")
     implementation("com.google.firebase:firebase-database")
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
+    implementation ("com.google.android.gms:play-services-identity:18.0.1")
+
+
 
 
 

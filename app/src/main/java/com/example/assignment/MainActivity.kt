@@ -1,11 +1,9 @@
 package com.example.assignment
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
-import android.content.Intent.EXTRA_EMAIL
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -14,46 +12,33 @@ import android.widget.DatePicker
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.bumptech.glide.Glide
 import com.example.assignment.chatFolder.UsersActivity
 import com.example.assignment.databinding.ActivityMainBinding
-import com.facebook.AccessToken
+import com.example.assignment.signUp.LoginActivity
 import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.FacebookSdk
-import com.facebook.appevents.AppEventsLogger
-import com.facebook.login.LoginResult
-import com.google.android.gms.auth.api.Auth
+import com.google.android.gms.auth.api.identity.BeginSignInRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.auth.api.signin.GoogleSignInResult
-import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseException
-import com.google.firebase.auth.ActionCodeSettings
-import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.database
-import com.google.firebase.firestore.auth.User
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.storage
-import com.google.firestore.v1.StructuredAggregationQuery.Aggregation.Count
-import com.google.gson.Gson
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -65,6 +50,8 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
     private  val gmaildetails = "gmail"
     private lateinit var callbackManager: CallbackManager
     private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var oneTapClient: SignInClient
+    private lateinit var signUpRequest: BeginSignInRequest
     private var verificationId: String? = null
     private lateinit var selectedDate: Calendar
     private lateinit var binding: ActivityMainBinding
@@ -89,7 +76,6 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
         callbackManager = CallbackManager.Factory.create()
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // User is already authenticated, navigate to UsersActivity
             startActivity(Intent(this, UsersActivity::class.java))
             finish() // Finish MainActivity to prevent going back to it when pressing back button
         }
@@ -105,18 +91,14 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
             }
         }
 
-
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        // Set click listener for Google Sign-In button
         binding.googleSignInButton.setOnClickListener {
-            signIn()
-            saveUserToFirestore()
-
+            signInWithGoogle()
         }
 
 
@@ -129,7 +111,6 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
             verificationId?.let { id ->
                 val credential = PhoneAuthProvider.getCredential(id, code)
                 signInWithPhoneAuthCredential(credential)
-                saveUserToFirestore()
                 val intent = Intent(this@MainActivity, UsersActivity::class.java)
                 intent.putExtra("IMAGE_URL", imageUrl)
                 startActivity(intent)
@@ -150,27 +131,32 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
         binding.signWithgmail.setOnClickListener {
             binding.gmailDetails.visibility=View.VISIBLE
             binding.numberLogin.visibility=View.GONE
+            binding.signWithgmail.visibility=View.GONE
+            binding.or.visibility=View.GONE
             binding.signWithnumber.visibility=View.VISIBLE
         }
         binding.signWithnumber.setOnClickListener {
             binding.gmailDetails.visibility=View.GONE
             binding.numberLogin.visibility=View.VISIBLE
-            binding.signWithnumber.visibility=View.VISIBLE
-
-
+            binding.verify.visibility=View.VISIBLE
+            binding.or.visibility=View.GONE
+            binding.phone.visibility=View.VISIBLE
+            binding.signWithnumber.visibility=View.GONE
+            binding.signWithgmail.visibility=View.VISIBLE
         }
 
 
 
         binding.loginEmail.setOnClickListener {
             gmailPassValidation()
-            val email = binding.gmail.text.toString().trim()
-            val password = binding.idEdtPassword.text.toString().trim()
-            signInWithEmailAndPassword(email, password)
         }
 
         binding.image.setOnClickListener {
             openGallery()
+        }
+        binding.alreadyUser.setOnClickListener(){
+            startActivity(Intent(this@MainActivity,LoginActivity::class.java))
+            finish()
         }
 
     }
@@ -180,17 +166,12 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
         pickImageLauncher.launch(intent)
     }
 
-
-
-    // Function to upload the selected image to Firebase Storage
-// Function to upload the selected image to Firebase Storage
     private fun uploadImage() {
         val imageRef = storageRef.child("images/${System.currentTimeMillis()}.jpg")
         imageRef.putFile(imageUri)
             .addOnSuccessListener { taskSnapshot ->
                 imageRef.downloadUrl.addOnSuccessListener { uri ->
                      imageUrl = uri.toString()
-                    // Set the uploaded image URL to ImageView
                     binding.image.setImageURI(Uri.parse(imageUrl))
                     Glide.with(this)
                         .load(imageUrl)
@@ -218,7 +199,6 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
         datePickerDialog.show()
     }
 
-    // Callback method when a date is set in the DatePickerDialog
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
         // Update the selected date
         selectedDate.set(year, month, dayOfMonth)
@@ -236,7 +216,8 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
         val editor = sharedPreferences.edit()
         editor.putString("userName", binding.idEdtUserName.text.toString())
         editor.putString("userEmail", binding.gmail.text.toString())
-        editor.putString("pass", binding.dateOfBirthTextView.text.toString())
+        editor.putString("userAddress", binding.address.text.toString())
+        editor.putString("DOB", binding.dateOfBirthTextView.text.toString())
         editor.putString("phone", binding.phone.text.toString())
         // Add more data fields as needed
         editor.apply()
@@ -247,11 +228,15 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
 //        Toast.makeText(this, "Please enter the password", Toast.LENGTH_SHORT).show()
 //    }
     fun validation() {
-        if (binding.idEdtUserName.length() <= 3) {
-            Toast.makeText(this, "Please enter correct name", Toast.LENGTH_SHORT).show()
-        } else if (binding.idEdtUserName.length() == 0) {
+        if (binding.idEdtUserName.length() == 0) {
             Toast.makeText(this, "Please enter the name", Toast.LENGTH_SHORT).show()
-        } else if (binding.dateOfBirthTextView.length()==0) {
+        } else if (binding.idEdtUserName.length() <= 3) {
+            Toast.makeText(this, "Please enter the correct name", Toast.LENGTH_SHORT).show()
+        }else  if (binding.address.length() == 0) {
+        Toast.makeText(this, "Please enter the address", Toast.LENGTH_SHORT).show()
+    } else if (binding.address.length() <= 3) {
+        Toast.makeText(this, "Please enter the correct address", Toast.LENGTH_SHORT).show()
+    }  else if (binding.dateOfBirthTextView.length()==0) {
             Toast.makeText(this, "Please enter the dob", Toast.LENGTH_SHORT).show()
         }  else if (binding.phone.length() <= 9 && binding.phone.length() == 0) {
             Toast.makeText(this, "Please enter the correct number", Toast.LENGTH_SHORT).show()
@@ -301,7 +286,7 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     val user = task.result?.user
-                    // Continue with your app logic, such as launching a new activity
+                    saveUserToFirestoreWithPhone()                    // Continue with your app logic, such as launching a new activity
                     val intent = Intent(this@MainActivity, UsersActivity::class.java)
                     intent.putExtra("IMAGE_URL", imageUrl)
                     startActivity(intent)
@@ -316,28 +301,62 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
                 }
             }
     }
-    private fun saveUserToFirestore() {
-        val db = Firebase.firestore
+
+    private fun saveUserTofirebaseGoogle(){
+        val user = auth.currentUser
+        val googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this)
         val database = Firebase.database
 
+        val user2 = hashMapOf(
+            "uid" to user!!.uid,
+            "userName" to user.displayName,
+            "userEmail" to user.email,
+            "userImage" to imageUrl,
+            "googleUserId" to googleSignInAccount?.id
+        )
+        val myRef = database.getReference()
+        myRef.child("Xeeshan").child(auth.currentUser!!.uid).setValue(user2)
+    }
 
+    private fun saveUserToFirestoreWithPhone() {
+        val db = Firebase.firestore
+        val database = Firebase.database
         val user = hashMapOf(
             "uid" to auth.currentUser!!.uid,
             "userImage" to imageUrl,
             "userName" to binding.idEdtUserName.text.toString().trim(),
-            "userEmail" to binding.gmail.text.toString().trim(),
+            "userAddress" to binding.address.text.toString().trim(),
             "userPhone" to binding.phone.text.toString().trim(),
             "userDob" to binding.idEdtPassword.text.toString().trim()
             // Add more fields as needed
         )
-        val user2 = hashMapOf(
+        val myRef = database.getReference()
+        myRef.child("Xeeshan").child(auth.currentUser!!.uid).setValue(user)
+//        mDbRef=FirebaseDatabase.getInstance().getReference()
+//        mDbRef.child("zeeshan").setValue(user)
+        db.collection("zeeshan")
+            .add(user)
+            .addOnSuccessListener { documentReference ->
+                Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Error adding document", e)
+            }
+    }
+    private fun saveUserToFirestore() {
+        val db = Firebase.firestore
+        val database = Firebase.database
+        val user = hashMapOf(
             "uid" to auth.currentUser!!.uid,
+            "userImage" to imageUrl,
             "userName" to binding.idEdtUserName.text.toString().trim(),
-            "userEmail" to binding.gmail.text.toString().trim(),
+            "userAddress" to binding.address.text.toString().trim(),
+            "usergmail" to binding.gmail.text.toString().trim(),
+            "userDob" to binding.idEdtPassword.text.toString().trim()
             // Add more fields as needed
         )
         val myRef = database.getReference()
-        myRef.child("Xeeshan").child(auth.currentUser!!.uid).setValue(user2)
+        myRef.child("Xeeshan").child(auth.currentUser!!.uid).setValue(user)
 //        mDbRef=FirebaseDatabase.getInstance().getReference()
 //        mDbRef.child("zeeshan").setValue(user)
         db.collection("zeeshan")
@@ -366,17 +385,23 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
             Toast.makeText(this, "Please enter the name", Toast.LENGTH_SHORT).show()
         } else if (binding.idEdtUserName.length() <= 3) {
             Toast.makeText(this, "Please enter the correct name", Toast.LENGTH_SHORT).show()
+        } else  if (binding.address.length() == 0) {
+            Toast.makeText(this, "Please enter the address", Toast.LENGTH_SHORT).show()
+        } else if (binding.address.length() <= 3) {
+            Toast.makeText(this, "Please enter the correct address", Toast.LENGTH_SHORT).show()
         } else if (binding.dateOfBirthTextView.length() == 0) {
             Toast.makeText(this, "Please enter the dob", Toast.LENGTH_SHORT).show()
         }else if (!gmail.contains("@gmail")) { // Check if email is valid
             Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
-        } else if (binding.idEdtPassword.length()<=6) { // Check if email is valid
+        } else if (binding.idEdtPassword.length()<=6) {
             Toast.makeText(this, "Please enter a valid password", Toast.LENGTH_SHORT).show()
         } else{
-            // Email and password are valid, proceed with Firebase email/password authentication
             saveUserDataToSharedPreferences()
             binding.idEdtPassword.visibility=View.VISIBLE
             binding.loginEmail.visibility=View.VISIBLE
+            val email = binding.gmail.text.toString().trim()
+            val password = binding.idEdtPassword.text.toString().trim()
+            signInWithEmailAndPassword(email, password)
         }
     }
 
@@ -407,13 +432,7 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
 
 //////////////////
 
-    private fun signIn() {
-
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            // If the user is signed in, sign them out first
-            FirebaseAuth.getInstance().signOut()
-        }
+    private fun signInWithGoogle() {
         val signInIntent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
@@ -422,50 +441,47 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_SIGN_IN) {
-            val task = data?.let { Auth.GoogleSignInApi.getSignInResultFromIntent(data) }
-            if (task != null) {
-                if (task.isSuccess) {
-                    val account = task.signInAccount
-                    firebaseAuthWithGoogle(account!!)
-                    val intent = Intent(this@MainActivity, UsersActivity::class.java)
-                    intent.putExtra("IMAGE_URL", imageUrl)
-                    startActivity(intent)
-                    finish()
-                } else {
-                    Toast.makeText(this, "Google Sign-In failed", Toast.LENGTH_SHORT).show()
-                }
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                firebaseAuthWithGoogle(account.idToken!!)
+            } catch (e: ApiException) {
+                Log.w(TAG, "Google sign in failed", e)
             }
         }
     }
 
-
-//    fun googledataSave(){
-//        val user = auth.currentUser
-//        val sharedPreferences = getSharedPreferences(gmaildetails, Context.MODE_PRIVATE)
-//        val editor = sharedPreferences.edit()
-//        editor.putString("userName",user?.displayName)
-//        editor.putString("userEmail", user?.email)
-//        editor.putString("pass", user?.providerData.toString())
-//        editor.putString("phone", user?.phoneNumber.toString())
-//        editor.apply()
-//    }
-
-private fun firebaseAuthWithGoogle(acct: GoogleSignInAccount) {
-    val credential = GoogleAuthProvider.getCredential(acct.idToken, null)
-    auth.signInWithCredential(credential)
-        .addOnCompleteListener(this) { task ->
-            if (task.isSuccessful) {
-                // Sign in success, update UI with the signed-in user's information
-                val user = auth.currentUser
-
-            } else {
-                // If sign in fails, display a message to the user.
-                Toast.makeText(this, "Authentication failed", Toast.LENGTH_SHORT).show()
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d(TAG, "signInWithCredential:success")
+                    val user = auth.currentUser
+                    // Proceed with your application logic after 0successful sign-in
+                    // For example, you can navigate to the next activity
+                    saveUserTofirebaseGoogle()
+                    val intent = Intent(this, UsersActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w(TAG, "signInWithCredential:failure", task.exception)
+                    // Show a message to the user indicating the authentication failed
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Authentication failed: ${task.exception?.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
-        }
-}
+    }
+
+
 
     companion object {
+        private const val TAG = "MainActivity"
         private const val RC_SIGN_IN = 9001
     }
 }

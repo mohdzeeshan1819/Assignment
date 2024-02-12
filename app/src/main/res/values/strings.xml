@@ -3,6 +3,8 @@
     <string name="default_web_client_id">YOUR_DEFAULT_WEB_CLIENT_ID</string>
     <string name="facebook_app_id">YOUR_FACEBOOK_APP_ID</string>
     <string name="xeeshan">Xeeshan</string>
+    <string name="client_id">946271321936-l8jl23mpk99mhu6bqb4s79oethhc1af6.apps.googleusercontent.com</string>
+    <string name="sign_out">Sign Out</string>
 
 
 </resources>
