@@ -5,6 +5,7 @@
     <string name="xeeshan">Xeeshan</string>
     <string name="client_id">946271321936-l8jl23mpk99mhu6bqb4s79oethhc1af6.apps.googleusercontent.com</string>
     <string name="sign_out">Sign Out</string>
+    <string name="default_channel_id">my_notification_channel</string>
 
 
 </resources>

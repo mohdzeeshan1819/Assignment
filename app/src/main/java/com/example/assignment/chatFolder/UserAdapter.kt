@@ -18,10 +18,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.storage
 import de.hdodenhof.circleimageview.CircleImageView
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class UserAdapter(val context: Context, val userList:ArrayList<Users>,val messageList:ArrayList<Message>) :
+class UserAdapter(val context: Context, val userList:ArrayList<Users>) :
     RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
 
@@ -36,10 +37,10 @@ class UserAdapter(val context: Context, val userList:ArrayList<Users>,val messag
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
+
+        // Append the time to the message body
         val currentUser = userList[position]
-        val currentMessage=messageList[position]
         holder.textname.text = currentUser.userName.toString()
-        holder.time.text = currentMessage.message.toString()
         val imageUrl = currentUser.userImage.toString()
         holder.bind(imageUrl)
         holder.itemView.setOnClickListener {
@@ -67,6 +68,7 @@ class UserAdapter(val context: Context, val userList:ArrayList<Users>,val messag
                 .error(R.drawable.ic_profile) // Error image if loading fails
                 .into(image)
         }
+
     }
 
 

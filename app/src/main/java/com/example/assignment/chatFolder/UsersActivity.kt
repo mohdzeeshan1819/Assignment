@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.assignment.MainActivity
 import com.example.assignment.R
 import com.example.assignment.chatFolder.chatActivityFolder.Message
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -29,10 +30,12 @@ class UsersActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_users)
+        FirebaseApp.initializeApp(this)
+
         mAuth = FirebaseAuth.getInstance()
         mDbRef = FirebaseDatabase.getInstance().getReference("Xeeshan")
         userList = ArrayList()
-        adapter = UserAdapter(this, userList, messageList)
+        adapter = UserAdapter(this, userList)
         userRecyclerView = findViewById(R.id.userView)
         userRecyclerView.layoutManager = LinearLayoutManager(this)
         userRecyclerView.adapter = adapter

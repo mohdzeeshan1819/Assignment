@@ -39,7 +39,9 @@ import com.google.firebase.database.database
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.storage
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 
@@ -71,6 +73,7 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
         auth = FirebaseAuth.getInstance()
         selectedDate = Calendar.getInstance()
         storageRef = Firebase.storage.reference
+
 
 
         callbackManager = CallbackManager.Factory.create()
@@ -210,10 +213,19 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
         binding.dateOfBirthTextView.text = formattedDate.toString()
     }
 
+    fun getCurrentTime(): String {
+
+        val currentTime = Calendar.getInstance().time
+        val dateFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        return dateFormat.format(currentTime)
+    }
+
 
     private fun saveUserDataToSharedPreferences() {
+        val time=getCurrentTime().toString()
         val sharedPreferences = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
+        editor.putString("time",time.toString())
         editor.putString("userName", binding.idEdtUserName.text.toString())
         editor.putString("userEmail", binding.gmail.text.toString())
         editor.putString("userAddress", binding.address.text.toString())
@@ -223,10 +235,6 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
         editor.apply()
     }
 
-
-//    else if (binding.idEdtPassword.length() <= 6 && binding.idEdtPassword.length() == 0) {
-//        Toast.makeText(this, "Please enter the password", Toast.LENGTH_SHORT).show()
-//    }
     fun validation() {
         if (binding.idEdtUserName.length() == 0) {
             Toast.makeText(this, "Please enter the name", Toast.LENGTH_SHORT).show()
@@ -247,7 +255,6 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
             binding.otp.visibility = View.VISIBLE
             binding.login.visibility = View.VISIBLE
             binding.verify.visibility = View.GONE
-
             PhoneAuthProvider.getInstance().verifyPhoneNumber(
                 phoneNumber,
                 60,
@@ -286,13 +293,12 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     val user = task.result?.user
-                    saveUserToFirestoreWithPhone()                    // Continue with your app logic, such as launching a new activity
+                    saveUserToFirestoreWithPhone()
                     val intent = Intent(this@MainActivity, UsersActivity::class.java)
                     intent.putExtra("IMAGE_URL", imageUrl)
                     startActivity(intent)
                     finish()
                 } else {
-                    // Sign in failed, display a message to the user.
                     Toast.makeText(
                         this@MainActivity,
                         "Authentication failed: ${task.exception?.message}",
@@ -303,11 +309,14 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
     }
 
     private fun saveUserTofirebaseGoogle(){
+        val time = getCurrentTime().toString()
+
         val user = auth.currentUser
         val googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this)
         val database = Firebase.database
 
         val user2 = hashMapOf(
+            "lastActiveTime" to time,
             "uid" to user!!.uid,
             "userName" to user.displayName,
             "userEmail" to user.email,
@@ -319,9 +328,11 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
     }
 
     private fun saveUserToFirestoreWithPhone() {
+        val time = getCurrentTime().toString()
         val db = Firebase.firestore
         val database = Firebase.database
         val user = hashMapOf(
+            "lastActiveTime" to time,
             "uid" to auth.currentUser!!.uid,
             "userImage" to imageUrl,
             "userName" to binding.idEdtUserName.text.toString().trim(),
@@ -342,11 +353,13 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
             .addOnFailureListener { e ->
                 Log.w(TAG, "Error adding document", e)
             }
-    }
+      }
     private fun saveUserToFirestore() {
+        val time = getCurrentTime().toString()
         val db = Firebase.firestore
         val database = Firebase.database
         val user = hashMapOf(
+            "lastActiveTime" to time,
             "uid" to auth.currentUser!!.uid,
             "userImage" to imageUrl,
             "userName" to binding.idEdtUserName.text.toString().trim(),
@@ -368,16 +381,6 @@ class MainActivity : AppCompatActivity(),DatePickerDialog.OnDateSetListener {
                 Log.w(TAG, "Error adding document", e)
             }
     }
-
-//    private fun addUsertoDatabase(userName:String, email:String, uid:String){
-//        mDbRef=FirebaseDatabase.getInstance().getReference()
-//        mDbRef.child("zeeshan").child(uid).setValue(User(userName,email,uid))
-//
-//    }
-
-
-    //////
-
 
     fun gmailPassValidation() {
         val gmail=binding.gmail.text.toString().trim()

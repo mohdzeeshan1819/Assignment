@@ -120,30 +120,6 @@
             android:layout_marginHorizontal="10dp"
             android:textColor="#FA0404"/>
 
-        <Button
-            android:id="@+id/signWithnumber"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:layout_marginTop="20dp"
-            android:visibility="visible"
-            android:text="Signup with number  "
-            android:layout_gravity="center"/>
-
-        <TextView
-            android:id="@+id/or"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#090909"
-            android:text="Or"
-            android:layout_gravity="center" />
-        <Button
-            android:id="@+id/signWithgmail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:text="Signup with email  "
-            android:layout_gravity="center" />
 
 
 
@@ -254,6 +230,30 @@
 
 
     </LinearLayout>
+        <Button
+            android:id="@+id/signWithnumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:layout_marginTop="20dp"
+            android:visibility="visible"
+            android:text="Signup with number  "
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/or"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#090909"
+            android:text="Or"
+            android:layout_gravity="center" />
+        <Button
+            android:id="@+id/signWithgmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:text="Signup with email  "
+            android:layout_gravity="center" />
 
 
 
